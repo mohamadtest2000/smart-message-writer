@@ -75,7 +75,7 @@ export async function onRequestPost(context: any) {
     } 
     // 2. Fallback to Workers AI
     else if (env.AI) {
-      const aiRes = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+      onst aiRes = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
