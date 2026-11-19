@@ -1,7 +1,3 @@
-/**
- * Cloudflare Pages Function: POST /api/refine
- */
-
 interface RefineBody {
   text: string;
   action: "rewrite" | "improve" | "shorten" | "lengthen" | "translate";
@@ -29,7 +25,6 @@ export async function onRequestPost(context: any) {
     const actionPrompt = ACTION_MAP[body.action] || body.action;
     const targetLang = body.language === "en" ? "English" : "العربية";
     
-    // For translation, we need to be explicit
     const finalAction = body.action === "translate" 
       ? `${actionPrompt} إلى ${targetLang}` 
       : actionPrompt;
@@ -39,7 +34,6 @@ export async function onRequestPost(context: any) {
 
     let content = "";
 
-    // 1. Try OpenAI
     if (env.OPENAI_API_KEY) {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -58,10 +52,8 @@ export async function onRequestPost(context: any) {
       });
       const data = await res.json();
       content = data.choices[0].message.content.trim();
-    } 
-    // 2. Fallback to Workers AI
-    else if (env.AI) {
-      const response = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
+    } else if (env.AI) {
+      const aiRes = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
