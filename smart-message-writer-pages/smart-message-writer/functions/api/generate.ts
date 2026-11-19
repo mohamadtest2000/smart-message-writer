@@ -1,68 +1,66 @@
-interface RefineBody {
-  text: string;
-  action: "rewrite" | "improve" | "shorten" | "lengthen" | "translate";
-  language?: string;
+interface GenerateBody {
+  prompt: string;
+  language: string;
+  dialect: string;
+  tone: string;
+  length: string;
 }
 
-const ACTION_MAP: Record<string, string> = {
-  rewrite: "أعد صياغة الرسالة التالية بأسلوب مختلف مع الحفاظ على المعنى",
-  improve: "حسّن الرسالة التالية لغوياً وأسلوبياً مع الحفاظ على المعنى",
-  shorten: "اختصار الرسالة التالية مع الحفاظ على المعنى الأساسي",
-  lengthen: "وسّع وأطِل الرسالة التالية بإضافة تفاصيل أكثر",
-  translate: "ترجم الرسالة التالية إلى اللغة المطلوبة",
+const DIALECT_MAP: Record<string, string> = {
+  fusha: "العربية الفصحى", saudi: "اللهجة السعودية", gulf: "اللهجة الخليجية",
+  egyptian: "اللهجة المصرية", levantine: "اللهجة الشامية",
+};
+
+const TONE_MAP: Record<string, string> = {
+  formal: "رسمية", friendly: "ودية", professional: "احترافية",
+  concise: "مختصرة", emotional: "مؤثرة", funny: "مضحكة",
+};
+
+const LENGTH_MAP: Record<string, string> = {
+  short: "قصيرة", medium: "متوسطة", long: "طويلة",
 };
 
 export async function onRequestPost(context: any) {
   const { request, env } = context;
 
   try {
-    const body = await request.json() as RefineBody;
+    const body = await request.json() as GenerateBody;
 
-    if (!body.text?.trim()) {
-      return new Response(JSON.stringify({ error: "لا يوجد نص للمعالجة" }), { status: 400 });
+    if (!body.prompt?.trim()) {
+      return new Response(JSON.stringify({ error: "الرجاء إدخال وصف الرسالة" }), { status: 400 });
     }
 
-    const actionPrompt = ACTION_MAP[body.action] || body.action;
-    const targetLang = body.language === "en" ? "English" : "العربية";
-    
-    const finalAction = body.action === "translate" 
-      ? `${actionPrompt} إلى ${targetLang}` 
-      : actionPrompt;
+    const lang = body.language === "en" ? "English" : "العربية";
+    const dialect = body.language === "ar" ? (DIALECT_MAP[body.dialect] || "العربية الفصحى") : "";
+    const tone = TONE_MAP[body.tone] || "احترافية";
+    const length = LENGTH_MAP[body.length] || "متوسطة";
 
-    const systemPrompt = "You are a professional editor. Follow the instruction and output ONLY the revised message, no explanations, no preamble, no meta-text.";
-    const userPrompt = `${finalAction}:\n\n${body.text}`;
+    const systemPrompt = `You are a professional message writer. Write a ${tone} message in ${lang}${dialect ? ` using ${dialect}` : ""}. The message should be ${length}. Write ONLY the message content.`;
+    const userPrompt = `اكتب رسالة بناءً على الطلب التالي:\n\n${body.prompt}`;
+
+    if (!env.AI) {
+      return new Response(JSON.stringify({ error: "ربط AI غير مفعّل. يرجى تفعيله من إعدادات Cloudflare." }), { status: 500 });
+    }
+
+    const aiRes = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      max_tokens: 1024,
+    });
 
     let content = "";
+    if (typeof aiRes === "string") {
+      content = aiRes;
+    } else if (aiRes && typeof aiRes === "object") {
+      content = aiRes.response || aiRes.text || "";
+    }
 
-    if (env.OPENAI_API_KEY) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          max_tokens: 1024,
-        }),
-      });
-      const data = await res.json();
-      content = data.choices[0].message.content.trim();
-    } else if (env.AI) {
-      const aiRes = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 1024,
-      });
-      content = (typeof aiRes === "string" ? aiRes : (aiRes.response || aiRes.text || "")).trim();
-    } else {
-      throw new Error("الذكاء الاصطناعي غير متاح حالياً.");
+    content = content.trim();
+
+    if (!content) {
+      return new Response(JSON.stringify({ error: "لم يتمكن الذكاء الاصطناعي من إنشاء نص. جرب صياغة طلب مختلف." }), { status: 500 });
     }
 
     return new Response(JSON.stringify({ content }), {
@@ -70,6 +68,6 @@ export async function onRequestPost(context: any) {
     });
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: err.message || "حدث خطأ غير متوقع" }), { status: 500 });
   }
 }
