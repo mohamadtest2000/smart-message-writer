@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="description" content="كاتب الرسائل الذكي - أنشئ أي رسالة احترافية خلال ثوانٍ باستخدام الذكاء الاصطناعي. رسائل رسمية، اعتذارات، شكر، دعوات، إعلانات والمزيد." />
+    <meta name="keywords" content="كاتب الرسائل, رسائل احترافية, الذكاء الاصطناعي, كتابة الرسائل, رسائل عربية, رسائل واتساب, رسائل بريد إلكتروني" />
+    <meta name="author" content="Smart Message Writer" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="كاتب الرسائل الذكي" />
+    <meta property="og:description" content="أنشئ أي رسالة احترافية خلال ثوانٍ باستخدام الذكاء الاصطناعي." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ar_AR" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="كاتب الرسائل الذكي" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <title>كاتب الرسائل الذكي | Smart Message Writer</title>
+
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "كاتب الرسائل الذكي",
+      "description": "أنشئ أي رسالة احترافية خلال ثوانٍ باستخدام الذكاء الاصطناعي.",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "ar"
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>

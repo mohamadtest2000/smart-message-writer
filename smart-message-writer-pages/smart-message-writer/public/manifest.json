@@ -1,0 +1,21 @@
+{
+  "name": "كاتب الرسائل الذكي",
+  "short_name": "كاتب الرسائل",
+  "description": "أنشئ أي رسالة احترافية خلال ثوانٍ باستخدام الذكاء الاصطناعي",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"]
+}
